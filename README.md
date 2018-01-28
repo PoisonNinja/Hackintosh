@@ -60,11 +60,11 @@ Grab the Clover bootloader, which can be obtained from [here](https://sourceforg
 You will also need the following kexts:
 * [Lilu](https://github.com/vit9696/Lilu) - A kext that injects other kexts into the system
 * [AppleALC](https://github.com/vit9696/AppleALC) - Enables support for other audio codecs natively. This is required for enabling the ALC892 in the Z170 motherboard. Check the wiki for a list of supported codecs
-* [CodecCommander](https://github.com/RehabMan/EAPD-Codec-Commander) - The ALC892 in my computer suffers from an issue where the volume is very low (10 - 25% of maximum) after waking from sleep. This kext basically resets the audio codec upon waiting from sleep and also enables EAPD so that audio volume works fine. In most cases, you won't need this, but system did.
-* [NvidiaGraphicsFixup](https://sourceforge.net/projects/nvidiagraphicsfixup/) - Needed to fix a variety of issues with Nvidia cards on MacOS. If you have only Intel graphics, this is not needed, but you may be interested in IntelGraphicsFixup. For AMD cards, take a look at WhateverGreen.kext
+* [CodecCommander](https://github.com/RehabMan/EAPD-Codec-Commander) - The ALC892 in my computer suffers from an issue where the volume is very low (10 - 25% of maximum) after waking from sleep. This kext basically resets the audio codec upon waiting from sleep and also enables EAPD so that audio volume works fine. In most cases, you won't need this, but my system did.
+* [NvidiaGraphicsFixup](https://sourceforge.net/projects/nvidiagraphicsfixup/) - Needed to fix a variety of issues with Nvidia cards on MacOS
 * [USBInjectAll](https://github.com/RehabMan/OS-X-USB-Inject-All) - Enables all EHCI/XHCI USB ports
-* [RealtekRTL8211](https://github.com/RehabMan/OS-X-Realtek-Network) - Driver for the RealtekRTL8211 ethernet family. Not needed if you don't have this chipset, but I strongly recommend installing a driver for whatever Ethernet card you have, even if you don't use Ethernet.
-* [FakeSMC](https://github.com/RehabMan/OS-X-FakeSMC-kozlek) - Real Macs use a System Management Controller (SMC) to control fans/sensors, but clearly PCs don't have this. This kext fakes the presence of the chip so MacOS doesn't panic and allows it to access sensor data.
+* [RealtekRTL8211](https://github.com/RehabMan/OS-X-Realtek-Network) - Driver for the RealtekRTL8211 ethernet family
+* [FakeSMC](https://github.com/RehabMan/OS-X-FakeSMC-kozlek) - This kext fakes the presence of the SMC so MacOS doesn't panic and allows it to access sensor data.
 
 In the past, Nvidia cards needed NVWebDriverLibValFix.kext, but on > 10.13 this is no longer needed.
 
@@ -75,13 +75,17 @@ If you have a system like mine, you can directly use the config.plist from my re
 
 If using my config.plist, download and copy the config.usb.plist to the CLOVER folder in the EFI partition on the USB.
 
-The config.plist in this repo uses the iMac 17,1 definition as it is the closest to my system (Skylake).
+The config.plist in this repo uses the iMac 17,1 definition as it is the closest to my system (Skylake). You will need to add a S/N, ROM, MLB, etc. by following the instructions in the Reddit post.
 
-Since we have a Nvidia card, InjectIntel is unnecessary. Furthermore, > 10.13 does not need nv_disable=1 on the commandline anymore as MacOS will automatically fall back to VESA drivers if it detects Maxwell/Pascal family cards.
+Some deviations from the Reddit post regarding Skylake and graphics:
+* Since we have a Nvidia card, InjectIntel and ig-platform-id are unnecessary
+* Furthermore, > 10.13 does not need nv_disable=1 on the commandline anymore as MacOS will automatically fall back to VESA drivers if it detects Maxwell/Pascal family cards.
+* There is also no need for NvidiaSingle as our system only has one graphics card anyways
+* Many of the ACPI patches are unncessary as they are for integrated graphics. Check my config.plist for the necessary ones.
+
+The rest of the Skylake patches are applicable.
 
 The Clover wiki mentions that USB FixOwnership is unnecessary on UEFI systems, so that has been removed.
-
-If using my config.plist, make sure to generate a S/N/SMBIOS definition. Instructions are in the Reddit post.
 
 ## Installing the bootloader
 Unpack the Clover installer zip and start the installer. Click through the license agreements. When you get to the part where you confirm the installation, choose `Customize Installation` in the bottom left corner.
@@ -109,7 +113,7 @@ Your USB is now ready!
 Make your BIOS match those settings, or as close as possible.
 * Reset to optimized defaults
 * Enable Windows 10 mode. This _should_ force the BIOS into UEFI only, but check to make sure
-* Disable VT-d. It's useless on Mac.
+* Disable VT-d. It's going to be disabled anyways with `-dart=0`, but it doesn't hurt to be safe.
 * Disable Secure Boot. This should be off by default, but check to make sure.
 * Enable XHCI handoff (important!)
 
@@ -148,7 +152,7 @@ Select terminal, and cd to `/Volumes/<Mac drive>`. Replace `<Mac drive>` with th
 
 Then, cd to `macOS Install Data`. We need to edit `minstallconfig.xml`, so run `vi minstallconfig.xml`.
 
-Use the arrow keys to select the `<true/>` under `<key>ConvertToAPFS</key>`. Then, with the cursor over the `t` in `true`, press DELETE four times to remove the `true`. Then, press `i` and type in `false`. Press ESC once done. If you messed up, type in `q!` to quit without saving so you can start over. Otherwise, type in `wq` to quit and exit.
+Use the arrow keys to select the `<true/>` under `<key>ConvertToAPFS</key>`. Then, with the cursor over the `t` in `true`, press DELETE four times to remove the `true`. Then, press `i` and type in `false`. Press ESC once done. If you messed up, type in `:q!` to quit without saving so you can start over. Otherwise, type in `:wq` to quit and exit.
 
 Close the Terminal and reboot. When Clover comes up again, select `Boot macOS Install from <your drive>`, where `<your drive>` is the target volume.
 
