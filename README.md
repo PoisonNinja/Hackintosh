@@ -1,14 +1,14 @@
 # Introduction
 This repository is intended as a 'journal' for my Hackintosh desktop, so that in the future I can reproduce this if anything goes wrong.
 
-This guide is targeted for MacOS 10.3.2, although it should work for 10.3.x in general. As I update my Hackintosh, I will update this guide to the latest.
+This guide is targeted for MacOS 10.3.4, although it should work for 10.3.x in general. As I update my Hackintosh, I will update this guide to the latest.
 
 If you have a system similar to mine, feel free to use these instructions, but be aware of any changes that you need to make. The instructions are modified from [here](https://www.reddit.com/r/hackintosh/comments/68p1e2/ramblings_of_a_hackintosher_a_sorta_brief_vanilla/), so you may find it more useful than this system-specific guide.
 
 # Prequisites
 This guide is intended for systems with the following parts:
 * MSI Z170A Pro
-* GTX 1060
+* AMD RX 580 4GB
 * i7-6700
 * Crucial MX300
 * RNX-AC1900 (BCM4360)
@@ -20,11 +20,11 @@ In addition, you will also need:
 * Internet connection
 
 # Known Issues
-* Flickering upon resume from sleep - Fixable by selecting a scaled resolution then switching back to default
+* Hibernate is wonky. Disable this for a reliable sleep.
 
 # Preparation
 ## Obtaining the installer
-Download the installer from the Mac App Store. This guide is specifically targeted towards 10.3.2, so try to grab that version if possible. There are other ways to obtain the installer, but they are probably of dubious legality. Stay especially away from patched installers such as Niresh. They cause more trouble than they are worth.
+Download the installer from the Mac App Store. This guide is specifically targeted towards 10.3.4, so try to grab that version if possible. There are other ways to obtain the installer, but they are probably of dubious legality. Stay especially away from patched installers such as Niresh. They cause more trouble than they are worth.
 
 ## Preparing the USB
 Insert your 8+GB USB into the Mac. Make sure that it doesn't have anything you don't want to lose, as we will be wiping it.
@@ -61,12 +61,11 @@ You will also need the following kexts:
 * [Lilu](https://github.com/vit9696/Lilu) - A kext that injects other kexts into the system
 * [AppleALC](https://github.com/vit9696/AppleALC) - Enables support for other audio codecs natively. This is required for enabling the ALC892 in the Z170 motherboard. Check the wiki for a list of supported codecs
 * [CodecCommander](https://github.com/RehabMan/EAPD-Codec-Commander) - The ALC892 in my computer suffers from an issue where the volume is very low (10 - 25% of maximum) after waking from sleep. This kext basically resets the audio codec upon waiting from sleep and also enables EAPD so that audio volume works fine. In most cases, you won't need this, but my system did.
-* [NvidiaGraphicsFixup](https://sourceforge.net/projects/nvidiagraphicsfixup/) - Needed to fix a variety of issues with Nvidia cards on MacOS
-* [USBInjectAll](https://github.com/RehabMan/OS-X-USB-Inject-All) - Enables all EHCI/XHCI USB ports
+* [USBInjectAll](https://github.com/RehabMan/OS-X-USB-Inject-All) - Enables all EHCI/XHCI USB ports. This may not be necessary.
 * [RealtekRTL8211](https://github.com/RehabMan/OS-X-Realtek-Network) - Driver for the RealtekRTL8211 ethernet family
 * [FakeSMC](https://github.com/RehabMan/OS-X-FakeSMC-kozlek) - This kext fakes the presence of the SMC so MacOS doesn't panic and allows it to access sensor data.
 
-In the past, Nvidia cards needed NVWebDriverLibValFix.kext, but on > 10.13 this is no longer needed.
+In the past, AMD cards needed WhateverGreen.kext, but 10.3.4 seemed to have resolved all issues.
 
 For DRM playback, we may need [Shiki](https://github.com/vit9696/Shiki), but I have not tested this yet. I will update as needed.
 
@@ -78,9 +77,7 @@ If using my config.plist, download and copy the config.usb.plist to the CLOVER f
 The config.plist in this repo uses the iMac 17,1 definition as it is the closest to my system (Skylake). You will need to add a S/N, ROM, MLB, etc. by following the instructions in the Reddit post.
 
 Some deviations from the Reddit post regarding Skylake and graphics:
-* Since we have a Nvidia card, InjectIntel and ig-platform-id are unnecessary
-* Furthermore, > 10.13 does not need nv_disable=1 on the commandline anymore as MacOS will automatically fall back to VESA drivers if it detects Maxwell/Pascal family cards.
-* There is also no need for NvidiaSingle as our system only has one graphics card anyways
+* Since we have an external card, InjectIntel and ig-platform-id are unnecessary
 * Many of the ACPI patches are unncessary as they are for integrated graphics. Check my config.plist for the necessary ones.
 
 The rest of the Skylake patches are applicable.
@@ -112,10 +109,11 @@ Your USB is now ready!
 ## BIOS Preparation
 Make your BIOS match those settings, or as close as possible.
 * Reset to optimized defaults
-* Enable Windows 10 mode. This _should_ force the BIOS into UEFI only, but check to make sure
+* Enable Windows 8/10 WHQL mode. This _should_ force the BIOS into UEFI only and disable CSM, but check to make sure
 * Disable VT-d. It's going to be disabled anyways with `-dart=0`, but it doesn't hurt to be safe.
 * Disable Secure Boot. This should be off by default, but check to make sure.
 * Enable XHCI handoff (important!)
+* Disable MSR 0xE2 config lock. For MSI boards, this will be under CPU features in overclocking settings
 
 # Installation
 ## Boot
@@ -173,29 +171,15 @@ Once done, mount the installer USB's EFI partition through Clover Configurator o
 ## config.plist
 Download the config.final.plist from this repository, and copy it to /Volumes/EFI/EFI/CLOVER overwriting config.plist. You might want to generate a SMBIOS definition, as I stripped my personal stuff out from the one is this repository.
 
-Alternatively, you can copy the config.plist from the USB to the system EFI partition. You will need the following changes:
-
-Add NvidiaWeb to SystemParameters, so it looks like:
-```
-<key>SystemParameters</key>
-<dict>
-    <key>InjectKexts</key>
-    <string>Yes</string>
-    <key>NvidiaWeb</key>
-    <true/>
-</dict>
-```
-
-This enables the NvidiaWeb drivers once they are installed. If you have nv_disable=1 in the command line, remove it now.
+Alternatively, you can copy the config.plist from the USB to the system EFI partition.
 
 Again, if you have not already, generate a SMBIOS definition and add it to config.plist.
 
-## Nvidia Drivers
-Download the appropriate web drivers from [tonymacx86](https://www.tonymacx86.com/nvidia-drivers/). You should grab the build that matches your build number, which can be found under Apple Logo > About This Mac and clicking on the macOS version.
-
-Install the package, but do not reboot yet.
-
 ## Power management
+We now use Clover's built-in feature to enable power management. The included config.plists already have this applied, but if you are following this manually, ensure that ACPI > SSDT > Generate > PluginType is true in the Clover config.
+
+### The instructions below are deprecated!
+
 We will be using Piker-Alpha's script to generate a SSDT.aml. Download the script:
 ```
 curl -o ~/ssdtPRGen.sh https://raw.githubusercontent.com/Piker-Alpha/ssdtPRGen.sh/Beta/ssdtPRGen.sh
@@ -216,6 +200,19 @@ Run it:
 This should run without any errors. The warning about `cpu-type mismatch` can be ignored, as it is merely cosmetic. Once complete, copy the file from ~/Library/ssdtPRGen to the EFI partition. Assuming your EFI partition is under /Volumes/EFI,
 ```
 cp ~/Library/ssdtPRGen/ssdt.aml /Volumes/EFI/EFI/Clover/ACPI/patched/SSDT.aml
+```
+
+## Disable autopoweroff and standby
+Hibernation has never worked reliably for me. If not disabled, overnight sleep will result in a reboot to the Clover screen about 3 hours in. Because we are using the iMac17,1 definition, hibernatemode should be set to 0.
+
+To check, run `pmset -g` and ensure that hibernatemode is 0. If not, run `sudo pmset -a hibernatemode 0`.
+
+On recent versions of MacOS, disabling hibernatemode does not actually disable hibernate completely. To do so, we also need to disable standby and autopoweroff. Despite being named standby, it doesn't disable normal sleep but rather safe sleep, which is hibernation.
+
+To do so, run these two commands:
+```
+sudo pmset -a autopoweroff 0
+sudo pmset -a standby 0
 ```
 
 ## Enable TRIM

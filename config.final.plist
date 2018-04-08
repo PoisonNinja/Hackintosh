@@ -31,11 +31,21 @@
 				<string>DMAR</string>
 			</dict>
 		</array>
+		<key>SSDT</key>
+		<dict>
+			<key>Generate</key>
+			<dict>
+				<key>PluginType</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
 	<key>Boot</key>
 	<dict>
 		<key>Arguments</key>
 		<string>dart=0</string>
+		<key>Timeout</key>
+		<integer>5</integer>
 	</dict>
 	<key>Devices</key>
 	<dict>
@@ -47,8 +57,13 @@
 		<key>USB</key>
 		<dict>
 			<key>Inject</key>
-			<true/>
+			<false/>
 		</dict>
+	</dict>
+	<key>GUI</key>
+	<dict>
+		<key>Theme</key>
+		<string>Minimalism</string>
 	</dict>
 	<key>Graphics</key>
 	<dict>
@@ -61,30 +76,17 @@
 			<key>NVidia</key>
 			<false/>
 		</dict>
+		<key>RadeonDeInit</key>
+		<false/>
 	</dict>
 	<key>KernelAndKextPatches</key>
 	<dict>
 		<key>AppleIntelCPUPM</key>
-		<true/>
+		<false/>
 		<key>AppleRTC</key>
 		<true/>
 		<key>KernelPm</key>
 		<true/>
-		<key>KextsToPatch</key>
-		<array>
-			<dict>
-				<key>Comment</key>
-				<string>External icons patch</string>
-				<key>Disabled</key>
-				<false/>
-				<key>Find</key>
-				<string>RXh0ZXJuYWw=</string>
-				<key>Name</key>
-				<string>AppleAHCIPort</string>
-				<key>Replace</key>
-				<string>SW50ZXJuYWw=</string>
-			</dict>
-		</array>
 	</dict>
 	<key>RtVariables</key>
 	<dict>
@@ -104,8 +106,6 @@
 	<dict>
 		<key>InjectKexts</key>
 		<string>Yes</string>
-		<key>NvidiaWeb</key>
-		<true/>
 	</dict>
 </dict>
 </plist>
