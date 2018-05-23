@@ -61,13 +61,13 @@ You will also need the following kexts:
 * [Lilu](https://github.com/vit9696/Lilu) - A kext that injects other kexts into the system
 * [AppleALC](https://github.com/vit9696/AppleALC) - Enables support for other audio codecs natively. This is required for enabling the ALC892 in the Z170 motherboard. Check the wiki for a list of supported codecs
 * [CodecCommander](https://github.com/RehabMan/EAPD-Codec-Commander) - The ALC892 in my computer suffers from an issue where the volume is very low (10 - 25% of maximum) after waking from sleep. This kext basically resets the audio codec upon waiting from sleep and also enables EAPD so that audio volume works fine. In most cases, you won't need this, but my system did.
-* [USBInjectAll](https://github.com/RehabMan/OS-X-USB-Inject-All) - Enables all EHCI/XHCI USB ports. This may not be necessary.
 * [RealtekRTL8211](https://github.com/RehabMan/OS-X-Realtek-Network) - Driver for the RealtekRTL8211 ethernet family
 * [FakeSMC](https://github.com/RehabMan/OS-X-FakeSMC-kozlek) - This kext fakes the presence of the SMC so MacOS doesn't panic and allows it to access sensor data.
+* [IntelGraphicsFixup](https://sourceforge.net/projects/intelgraphicsfixup/) - Needed to get Intel HD 530 working
 
 In the past, AMD cards needed WhateverGreen.kext, but 10.3.4 seemed to have resolved all issues.
 
-For DRM playback, we may need [Shiki](https://github.com/vit9696/Shiki), but I have not tested this yet. I will update as needed.
+Even though we have a discrete card, we will be enabling the integrated graphics to enable Intel QuickSync (faster video encode/decode) and to prevent loss of graphics performance after watching a video.
 
 ## Creating/Obtaining config.plist
 If you have a system like mine, you can directly use the config.plist from my repository. Otherwise, adjust the sections as needed. Use the Reddit post linked above to figure out what stuff you need.
@@ -92,7 +92,6 @@ Select the following options:
 * If you want, you can install some additional themes
 * Under `Drivers64UEFI`, select the following driver:
     * `AptioMemoryFix` - This is another variant of the OsxAptioFix family which fixes the memory on AMI BIOS boards. For some reason, OsxAptioFix{2,3}Drv-64 never worked for me, complaining about `Does printf work?` or giving me a Do Not Enter sign if booting graphically. This also fixes native NVRAM, which is broken with OsxAptioFix. If this doesn't work, OsxAptioFix2Drv-Free2000.kext has also been known to work. If you are not using MSI Z170A Pro, try OsxAptioFix3Drv-64, then the other drivers. **DO NOT INSTALL A COMBINATION OF APTIOMEMORYFIX OR ANY OF THE OSXAPTIOFIX FAMILY. THEY WILL CAUSE ISSUES. ONLY INSTALL ONE!**
-* If you want, you can also select `Install Clover Preference Pane`. It makes updating Clover a little bit easier, and offers some other configuration options.
 
 Make sure to select your USB as the destination, NOT your Mac.
 
@@ -112,8 +111,9 @@ Make your BIOS match those settings, or as close as possible.
 * Enable Windows 8/10 WHQL mode. This _should_ force the BIOS into UEFI only and disable CSM, but check to make sure
 * Disable VT-d. It's going to be disabled anyways with `-dart=0`, but it doesn't hurt to be safe.
 * Disable Secure Boot. This should be off by default, but check to make sure.
-* Enable XHCI handoff (important!)
 * Disable MSR 0xE2 config lock. For MSI boards, this will be under CPU features in overclocking settings
+* Enable above 4G decoding
+* Enable IGD multimonitor but leave the default card on PEG. This enables the integrated card will still primarily using the discrete graphics
 
 # Installation
 ## Boot
