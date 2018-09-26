@@ -1,7 +1,7 @@
 # Introduction
 This repository is intended as a 'journal' for my Hackintosh desktop, so that in the future I can reproduce this if anything goes wrong.
 
-This guide is targeted for MacOS 10.3.4, although it should work for 10.3.x in general. As I update my Hackintosh, I will update this guide to the latest.
+This guide is targeted for MacOS 10.14.0, although it should work for 10.14.x in general. As I update my Hackintosh, I will update this guide to the latest.
 
 If you have a system similar to mine, feel free to use these instructions, but be aware of any changes that you need to make. The instructions are modified from [here](https://www.reddit.com/r/hackintosh/comments/68p1e2/ramblings_of_a_hackintosher_a_sorta_brief_vanilla/), so you may find it more useful than this system-specific guide.
 
@@ -24,7 +24,7 @@ In addition, you will also need:
 
 # Preparation
 ## Obtaining the installer
-Download the installer from the Mac App Store. This guide is specifically targeted towards 10.3.4, so try to grab that version if possible. There are other ways to obtain the installer, but they are probably of dubious legality. Stay especially away from patched installers such as Niresh. They cause more trouble than they are worth.
+Download the installer from the Mac App Store. This guide is specifically targeted towards 10.14.0, so try to grab that version if possible. There are other ways to obtain the installer, but they are probably of dubious legality. Stay especially away from patched installers such as Niresh. They cause more trouble than they are worth.
 
 ## Preparing the USB
 Insert your 8+GB USB into the Mac. Make sure that it doesn't have anything you don't want to lose, as we will be wiping it.
@@ -58,14 +58,15 @@ The Reddit post that this guide is forked off mentions [this script](https://git
 Grab the Clover bootloader, which can be obtained from [here](https://sourceforge.net/projects/cloverefiboot/). Try to obtain the latest build.
 
 You will also need the following kexts:
-* [Lilu](https://github.com/vit9696/Lilu) - A kext that injects other kexts into the system
-* [AppleALC](https://github.com/vit9696/AppleALC) - Enables support for other audio codecs natively. This is required for enabling the ALC892 in the Z170 motherboard. Check the wiki for a list of supported codecs
-* [CodecCommander](https://github.com/RehabMan/EAPD-Codec-Commander) - The ALC892 in my computer suffers from an issue where the volume is very low (10 - 25% of maximum) after waking from sleep. This kext basically resets the audio codec upon waiting from sleep and also enables EAPD so that audio volume works fine. In most cases, you won't need this, but my system did.
+* [Lilu](https://github.com/acidanthera/Lilu) - A kext that injects other kexts into the system
+* [AppleALC](https://github.com/acidanthera/AppleALC) - Enables support for other audio codecs natively. This is required for enabling the ALC892 in the Z170 motherboard. Check the wiki for a list of supported codecs
 * [RealtekRTL8211](https://github.com/RehabMan/OS-X-Realtek-Network) - Driver for the RealtekRTL8211 ethernet family
 * [FakeSMC](https://github.com/RehabMan/OS-X-FakeSMC-kozlek) - This kext fakes the presence of the SMC so MacOS doesn't panic and allows it to access sensor data.
-* [IntelGraphicsFixup](https://sourceforge.net/projects/intelgraphicsfixup/) - Needed to get Intel HD 530 working
+* [WhateverGreen](https://github.com/acidanthera/WhateverGreen) - Various fixes for AMD and Intel graphics cards
 
-In the past, AMD cards needed WhateverGreen.kext, but 10.3.4 seemed to have resolved all issues.
+AMD, Intel, and NVidia support are now all merged into WhateverGreen. Although we no longer need WhateverGreen for the sleep/wake issue, it still contains various other fixes that are useful.
+
+AppleALC gained support for resetting EAPD after sleep, so CodecCommander is no longer required.
 
 Even though we have a discrete card, we will be enabling the integrated graphics to enable Intel QuickSync (faster video encode/decode) and to prevent loss of graphics performance after watching a video.
 
@@ -82,7 +83,7 @@ Some deviations from the Reddit post regarding Skylake and graphics:
 
 The rest of the Skylake patches are applicable.
 
-The Clover wiki mentions that USB FixOwnership is unnecessary on UEFI systems, so that has been removed.
+The Clover wiki mentions that USB FixOwnership is unnecessary on UEFI systems, so that has been removed. We also no longer inject USB as it seems to work without.
 
 ## Installing the bootloader
 Unpack the Clover installer zip and start the installer. Click through the license agreements. When you get to the part where you confirm the installation, choose `Customize Installation` in the bottom left corner.
@@ -92,6 +93,7 @@ Select the following options:
 * If you want, you can install some additional themes
 * Under `Drivers64UEFI`, select the following driver:
     * `AptioMemoryFix` - This is another variant of the OsxAptioFix family which fixes the memory on AMI BIOS boards. For some reason, OsxAptioFix{2,3}Drv-64 never worked for me, complaining about `Does printf work?` or giving me a Do Not Enter sign if booting graphically. This also fixes native NVRAM, which is broken with OsxAptioFix. If this doesn't work, OsxAptioFix2Drv-Free2000.kext has also been known to work. If you are not using MSI Z170A Pro, try OsxAptioFix3Drv-64, then the other drivers. **DO NOT INSTALL A COMBINATION OF APTIOMEMORYFIX OR ANY OF THE OSXAPTIOFIX FAMILY. THEY WILL CAUSE ISSUES. ONLY INSTALL ONE!**
+    * `ApfsDriverLoader and AppleImageLoader` - Reverse engineered APFS driver. This is now mandatory as of 10.14 since it forces you to use APFS. The old tricks for HFS+ no longer work anymore. If you want to boot, this is required!
 
 Make sure to select your USB as the destination, NOT your Mac.
 
@@ -119,7 +121,9 @@ Make your BIOS match those settings, or as close as possible.
 ## Boot
 Plug the USB into the desktop, and reboot. Select the USB as the boot device by pressing the appropriate key (`F11` for MSI Z170).
 
-Once the Clover screen comes up, press Space on the `Install MacOS` option and use the arrow keys to highlight the verbose boot option. Press enter to tick that box, and then return to the main menu. This is so we can see if anything goes wrong.
+~Once the Clover screen comes up, press Space on the `Install MacOS` option and use the arrow keys to highlight the verbose boot option. Press enter to tick that box, and then return to the main menu. This is so we can see if anything goes wrong.~
+
+The configuration has -v set already, so there's no need to manually enable it.
 
 Press enter on the install option, and wait for the system to boot up. This can take a bit of time, depending on how slow your USB is.
 
@@ -127,34 +131,28 @@ Press enter on the install option, and wait for the system to boot up. This can 
 Select the Disk Utility option in the main menu. Erase the disk that you are installing on and format it as follows:
 * GUID Partition Table
 * 1 Partition
-* OS X Extended (Journaled)
+* APFS
 
 You may encounter an error when formatting an existing disk with data on it about how MediaKit is out of space or something similar. In that case, exit Disk Utility and select the Terminal. We will be formatting the disk like you did with the USB.
 
 Use `diskutil list` to figure out what disk is your target disk. Run
 ```
-diskutil eraseDisk JHFS+ "Macintosh HD" /dev/disk#
+diskutil eraseDisk APFS "Macintosh HD" /dev/disk#
 ```
 to get your disk formatted. Change Macintosh HD to something else if you don't like it.
+
+**NOTE**: As of 10.14, APFS is now mandatory! Even if you format it as HFS+, the installer will automatically convert it to APFS. There is currently no way to disable this behavior.
 
 Once it's done formatting, quit Terminal.
 
 ## Installation
 Select the Install option and click through the prompts. Select your target disk when prompted. This should proceed relatively quick.
 
-Once the installer is done copying the files, it will reboot. Keep the USB in the computer. When the Clover bootloader comes back up, select the `Boot OS X Install from Install macOS High Sierra`.
+Once the installer is done copying the files, it will reboot. Keep the USB in the computer. At this point, we still need the USB to get into the bootloader, so select the USB as your boot device again. When Clover comes up again, select `Boot macOS Install from <your drive>`, where `<your drive>` is the target volume.
 
-We need to disable conversion to APFS, since APFS can cause issues with data loss and performance on non-Apple drives.
+You'll probably notice the "Preboot" options. Don't use that as it will kernel panic. From some quick Google searches, it seems to be related to APFS on real Macs, so it's useless. We'll hide it once we're done setting up.
 
-Select terminal, and cd to `/Volumes/<Mac drive>`. Replace `<Mac drive>` with the name of your drive. In my case, it was `Macintosh HD`, so I cd to `/Volumes/Macintosh HD`.
-
-Then, cd to `macOS Install Data`. We need to edit `minstallconfig.xml`, so run `vi minstallconfig.xml`.
-
-Use the arrow keys to select the `<true/>` under `<key>ConvertToAPFS</key>`. Then, with the cursor over the `t` in `true`, press DELETE four times to remove the `true`. Then, press `i` and type in `false`. Press ESC once done. If you messed up, type in `:q!` to quit without saving so you can start over. Otherwise, type in `:wq` to quit and exit.
-
-Close the Terminal and reboot. When Clover comes up again, select `Boot macOS Install from <your drive>`, where `<your drive>` is the target volume.
-
-It should boot into the installer and complete it. In rare cases, like on my system, it may kernel panic halfway through and reboot. Don't panic (lol). When Clover shows up, select the same option as before and let it complete the install.
+The computer should boot into the installer and complete it. In rare cases, like on my system, it may kernel panic halfway through and reboot. Don't panic (lol). When Clover shows up, select the same option as before and let it complete the install.
 
 Once it reboots for the final time, select the volume that you installed MacOS on.
 
@@ -171,7 +169,7 @@ Once done, mount the installer USB's EFI partition through Clover Configurator o
 ## config.plist
 Download the config.final.plist from this repository, and copy it to /Volumes/EFI/EFI/CLOVER overwriting config.plist. You might want to generate a SMBIOS definition, as I stripped my personal stuff out from the one is this repository.
 
-Alternatively, you can copy the config.plist from the USB to the system EFI partition.
+Alternatively, you can copy the config.plist from the USB to the system EFI partition. Make sure to change the options to match config.final.plist in this repo.
 
 Again, if you have not already, generate a SMBIOS definition and add it to config.plist.
 
